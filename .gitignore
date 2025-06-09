@@ -1,0 +1,63 @@
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignore sensitive files
+*.env
+*.key
+*.pem
+
+# Ignore data files
+*.csv
+*.tsv
+*.dat
+*.db
+*.sqlite
+
+# Ignore build files
+build/
+dist/
+*.egg-info/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+
+# Ignore coverage reports
+.coverage
+htmlcov/
+
+# Ignore other standard files
+node_modules/
+*.lock
+
+# Ignore config files
+config.py
+
+# Ignore directories
+utils/
+checkpoints/
+artifacts/
+00.%20project_setup/
+data/bronze/
+data/silver/
+data/gold/
