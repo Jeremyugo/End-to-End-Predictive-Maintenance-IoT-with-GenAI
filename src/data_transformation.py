@@ -1,6 +1,15 @@
-from create_spark_session import spark
+import sys
+sys.path.append('..')
+
+from create_spark_session import create_spark_session
 import pyspark.sql.functions as F
 from delta.tables import DeltaTable
+from utils.config import fetch_paths
+
+from loguru import logger as log
+
+spark = create_spark_session()
+checkpoint_path, _, delta_lake_path = fetch_paths()
 
 
 def load_delta_table(file_path: str) -> DeltaTable:
@@ -19,7 +28,8 @@ def write_delta_table(delta_table, file_path: str) -> None:
 
 
 def compute_sensor_aggregations() -> None:
-    sensor_table = load_delta_table('../data/bronze/bronze_incoming_data')
+    log.info('Started computing sensor aggregations')
+    sensor_table = load_delta_table(f'{delta_lake_path}/bronze/bronze_incoming_data')
     
     sensor_columns = [col for col in sensor_table.columns if 'sensor' in col]
     aggregations = [F.avg('energy').alias('avg_energy')]
@@ -35,13 +45,14 @@ def compute_sensor_aggregations() -> None:
         .agg(*aggregations)
     )
     
-    write_delta_table(delta_table=sensor_df, file_path='../data/silver/silver_sensor_hourly')
+    write_delta_table(delta_table=sensor_df, file_path=f'{delta_lake_path}/silver/silver_sensor_hourly')
+    log.success('finished computing aggregations')
     
     return
     
 
 def upsert_to_silver(microbatch_df) -> None:
-    silver_path = '../data/silver/silver_sensor_hourly'
+    silver_path = f'{delta_lake_path}/silver/silver_sensor_hourly'
     
     if DeltaTable.isDeltaTable(spark, silver_path):
         silver_table = DeltaTable.forPath(spark, silver_path)
@@ -62,7 +73,7 @@ def upsert_to_silver(microbatch_df) -> None:
 
 
 def compute_sensor_aggragation_using_watermark() -> None:
-    sensor_table = load_delta_table('../data/bronze/bronze_incoming_data')
+    sensor_table = load_delta_table(f'{delta_lake_path}/bronze/bronze_incoming_data')
     
     sensor_columns = [col for col in sensor_table.columns if 'sensor' in col]
     aggregations = [F.avg('energy').alias('avg_energy')]
@@ -84,10 +95,15 @@ def compute_sensor_aggragation_using_watermark() -> None:
         sensor_table.writeStream
         .outputMode("update")
         .foreachBatch(upsert_to_silver)
-        .option("checkpointLocation", "../checkpoints/silver_sensor_hourly")
+        .option("checkpointLocation", f"{checkpoint_path}/silver_sensor_hourly")
         .start()
     )
     
     query.awaitTermination()
     
     return
+
+
+if __name__ == '__main__':
+    compute_sensor_aggregations()
+    # compute_sensor_aggragation_using_watermark() # should be used in production
