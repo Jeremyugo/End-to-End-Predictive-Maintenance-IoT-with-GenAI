@@ -37,8 +37,10 @@ def compute_sensor_aggregations() -> None:
     
     write_delta_table(delta_table=sensor_df, file_path='../data/silver/silver_sensor_hourly')
     
+    return
+    
 
-def upsert_to_silver(microbatch_df, batch_id) -> None:
+def upsert_to_silver(microbatch_df) -> None:
     silver_path = '../data/silver/silver_sensor_hourly'
     
     if DeltaTable.isDeltaTable(spark, silver_path):
@@ -55,6 +57,8 @@ def upsert_to_silver(microbatch_df, batch_id) -> None:
         )
     else:
         microbatch_df.write.format("delta").save(silver_path)
+        
+    return 
 
 
 def compute_sensor_aggragation_using_watermark() -> None:
@@ -85,3 +89,5 @@ def compute_sensor_aggragation_using_watermark() -> None:
     )
     
     query.awaitTermination()
+    
+    return
