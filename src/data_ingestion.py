@@ -1,7 +1,11 @@
+import sys
+sys.path.append('..')
+
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType
 from pyspark.sql.streaming import StreamingQuery
 from create_spark_session import spark
+from utils.config import checkpoint_path, landing_path, delta_lake_path
 
 
 def infer_schema(file_path: str, format: str) -> StructType:
@@ -17,11 +21,14 @@ def infer_schema(file_path: str, format: str) -> StructType:
 
 
 def ingest_data(
-    path_to_file: str,  
     format: str,
-    checkpoint_path: str,
-    output_path: str
+    table_name: str,
+    quality: str,
     ) -> StreamingQuery|None:
+
+    path_to_file = f'{landing_path}/{table_name}'
+    path_to_checkpoint = f'{checkpoint_path}/{quality}_{table_name}'
+    output_path = f'{delta_lake_path}/{quality}/{quality}_{table_name}'
     
     try:
         # read streaming data with the specified schema
@@ -38,7 +45,7 @@ def ingest_data(
             stream_df.writeStream
             .format('delta')
             .outputMode('append')
-            .option('checkpointLocation', checkpoint_path)
+            .option('checkpointLocation', path_to_checkpoint)
             .option('mergeSchema', 'true')
             .start(output_path)
         )
@@ -51,40 +58,36 @@ def ingest_data(
 def main() -> None:
     # ingest turbine data
     turbine_query = ingest_data(
-        path_to_file='../data/landing/turbine',
+        table_name='turbine',
         format='json',
-        checkpoint_path='../checkpoints/bronze_turbine',
-        output_path='../data/bronze/bronze_turbine'
+        quality='bronze'
     )
     turbine_query.awaitTermination()
 
 
     # ingest parts data
     parts_stream = ingest_data(
-        path_to_file='../data/landing/parts',
+        table_name='parts',
         format='json',
-        checkpoint_path=f'../checkpoints/bronze_parts',
-        output_path='../data/bronze/bronze_parts'
+        quality='bronze'
     )
     parts_stream.awaitTermination()
 
 
     # ingest historical turbine status data
     turbine_status_query = ingest_data(
-        path_to_file='../data/landing/historical_turbine_status',
+        table_name='historical_turbine_status',
         format='json',
-        checkpoint_path='../checkpoints/bronze_turbine_status',
-        output_path='../data/bronze/bronze_turbine_status'
+        quality='bronze'
     )
     turbine_status_query.awaitTermination()
 
 
     # ingest incoming turbine data
     incoming_turbine_status_query = ingest_data(
-        path_to_file='../data/landing/incoming_data',
+        table_name='incoming_data',
         format='parquet',
-        checkpoint_path='../checkpoints/bronze_incoming_data',
-        output_path='../data/bronze/bronze_incoming_data'
+        quality='bronze'
     )
     incoming_turbine_status_query.awaitTermination()
     
