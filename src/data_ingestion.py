@@ -1,11 +1,18 @@
 import sys
 sys.path.append('..')
 
+import importlib
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType
 from pyspark.sql.streaming import StreamingQuery
-from create_spark_session import spark
-from utils.config import checkpoint_path, landing_path, delta_lake_path
+from create_spark_session import create_spark_session
+from utils.config import fetch_paths
+
+from loguru import logger as log
+
+spark = create_spark_session()
+checkpoint_path, landing_path, delta_lake_path = fetch_paths()
+
 
 
 def infer_schema(file_path: str, format: str) -> StructType:
@@ -32,6 +39,7 @@ def ingest_data(
     
     try:
         # read streaming data with the specified schema
+        log.info(f'Ingesting - {table_name} data')
         stream_df = (
             spark.readStream
             .format(format)
@@ -47,8 +55,10 @@ def ingest_data(
             .outputMode('append')
             .option('checkpointLocation', path_to_checkpoint)
             .option('mergeSchema', 'true')
+            .trigger(availableNow=True)  # should be removed in production
             .start(output_path)
         )
+        
         
     except Exception as e:
         print(f"Error reading stream from {path_to_file}: {e}")
@@ -63,7 +73,7 @@ def main() -> None:
         quality='bronze'
     )
     turbine_query.awaitTermination()
-
+    
 
     # ingest parts data
     parts_stream = ingest_data(

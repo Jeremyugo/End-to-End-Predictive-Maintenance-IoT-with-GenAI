@@ -1,10 +1,15 @@
 import sys
 sys.path.append('..')
 
-from create_spark_session import spark
+from create_spark_session import create_spark_session
 import pyspark.sql.functions as F
 from delta.tables import DeltaTable
-from utils.config import checkpoint_path, delta_lake_path
+from utils.config import fetch_paths
+
+from loguru import logger as log
+
+spark = create_spark_session()
+checkpoint_path, _, delta_lake_path = fetch_paths()
 
 
 def load_delta_table(file_path: str) -> DeltaTable:
@@ -23,6 +28,7 @@ def write_delta_table(delta_table, file_path: str) -> None:
 
 
 def compute_sensor_aggregations() -> None:
+    log.info('Started computing sensor aggregations')
     sensor_table = load_delta_table(f'{delta_lake_path}/bronze/bronze_incoming_data')
     
     sensor_columns = [col for col in sensor_table.columns if 'sensor' in col]
@@ -40,6 +46,7 @@ def compute_sensor_aggregations() -> None:
     )
     
     write_delta_table(delta_table=sensor_df, file_path=f'{delta_lake_path}/silver/silver_sensor_hourly')
+    log.success('finished computing aggregations')
     
     return
     
@@ -95,3 +102,8 @@ def compute_sensor_aggragation_using_watermark() -> None:
     query.awaitTermination()
     
     return
+
+
+if __name__ == '__main__':
+    compute_sensor_aggregations()
+    # compute_sensor_aggragation_using_watermark() # should be used in production

@@ -1,20 +1,26 @@
 import sys
 sys.path.append('..')
 
-from create_spark_session import spark
+from create_spark_session import create_spark_session
 from delta.tables import DeltaTable
-from utils.config import checkpoint_path, delta_lake_path
+from utils.config import fetch_paths
+
+from loguru import logger as log
+
+spark = create_spark_session()
+_, _, delta_lake_path = fetch_paths()
 
 
 def load_required_turbine_data() -> tuple[DeltaTable, DeltaTable, DeltaTable]:
     turbine = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_turbine')
-    health = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_turbine_status')
+    health = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_historical_turbine_status')
     sensor_hourly = spark.read.format('delta').load(f'{delta_lake_path}/silver/silver_sensor_hourly')
     
     return turbine, health, sensor_hourly
 
 
 def create_training_data() -> None:
+    log.info('loading turbine data')
     turbine, health, sensor_hourly = load_required_turbine_data()
     
     (
@@ -26,5 +32,10 @@ def create_training_data() -> None:
         .option('overwriteSchema', 'true')
         .save(f'{delta_lake_path}/silver/spark_turbine_training_dataset')
     )
+    log.success('finished creating training set')
     
     return
+
+
+if __name__ == '__main__':
+    create_training_data()
