@@ -5,7 +5,9 @@ sys.path.append('..')
 import mlflow.sklearn
 from create_spark_session import spark
 from utils.custom_sklearn_transformers import DateTimeImputer, TimeStampTransformer
-from utils.config import PROJECT_DIR
+from utils.config import (
+        path_to_base_model, path_to_label_encoder, path_to_training_data, path_to_test_data
+    )
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from typing import Any
 
@@ -27,7 +29,7 @@ import shutil
 
 # TODO: remove function after testing pipeline 
 def delete_artifact() -> None:
-    paths_ = [f"{PROJECT_DIR}/model/artifacts/label_encoder", f"{PROJECT_DIR}/model/artifacts/model"]
+    paths_ = [path_to_label_encoder, path_to_base_model]
     
     for path in paths_:
         if os.path.exists(path):
@@ -76,7 +78,7 @@ def build_model_training_pipeline(training_data: pd.DataFrame, model_params: dic
 
 
 def load_training_data() -> pd.DataFrame:
-    sensor_training_data = spark.read.format('delta').load('../data/silver/spark_turbine_training_dataset')
+    sensor_training_data = spark.read.format('delta').load(path_to_training_data)
     training_data = sensor_training_data.toPandas()
     
     columns = [
@@ -168,10 +170,11 @@ def main() -> None:
     log.info('processing training data')
     X_train, X_test, y_train, y_test, label_encoder = process_training_data(training_data)
     
-    mlflow.sklearn.save_model(label_encoder, path=f"{PROJECT_DIR}/model/artifacts/label_encoder")
+    mlflow.sklearn.save_model(label_encoder, path=path_to_label_encoder)
     
     # save test data to model directory for model evaluation
-    np.savez(f"{PROJECT_DIR}/model/data/test_data.npz")
+    X_test['target'] = y_test
+    X_test.to_csv(path_to_test_data, index=False)
     
     signature = infer_signature(X_train, y_train)
     
@@ -208,7 +211,7 @@ def main() -> None:
     # Save only the best model
     mlflow.sklearn.save_model(
         sk_model=best_model,
-        path=f"{PROJECT_DIR}/model/artifacts/model",
+        path=path_to_base_model,
         signature=signature
     )
     
