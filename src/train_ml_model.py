@@ -27,8 +27,8 @@ import numpy as np
 from loguru import logger as log
 import shutil
 
-# TODO: remove function after testing pipeline 
-def delete_artifact() -> None:
+
+def cleanup_temp_model_artifacts() -> None:
     paths_ = [path_to_label_encoder, path_to_base_model]
     
     for path in paths_:
@@ -163,7 +163,7 @@ def wrapped_objective(
 
 def main() -> None:
     
-    delete_artifact()
+    cleanup_temp_model_artifacts()
     log.info('loading training data')
     training_data = load_training_data()
     
