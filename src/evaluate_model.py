@@ -1,5 +1,6 @@
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import mlflow.sklearn
 import numpy as np
@@ -8,7 +9,6 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 from loguru import logger as log
 
-from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix
 from sklearn.base import BaseEstimator
 
@@ -47,7 +47,7 @@ def main() -> None:
         model_name=model_name, 
         evaluation_output=evaluation_path,
         X_test=X_test,
-        y_test=y_test,
+        y_test=label_encoder.inverse_transform(y_test),
         yhat_test=yhat_test,
         score=score
     )
@@ -121,7 +121,7 @@ def model_promotion(
         predictions[f"{model_name}:{model_version}"] = mdl.predict(X_test)
         
         scores[f"{model_name}:{model_version}"] = f1_score(
-            y_test, predictions[f"{model_name}:{model_version}"])
+            y_test, predictions[f"{model_name}:{model_version}"], average='weighted')
 
     if scores:
         if score >= max(list(scores.values())):

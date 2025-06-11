@@ -1,0 +1,28 @@
+Scored with the following model:
+Pipeline(steps=[('preprocessor',
+                 ColumnTransformer(transformers=[('timestamp_pipeline',
+                                                  Pipeline(steps=[('impute_datetime',
+                                                                   DateTimeImputer(strategy='median')),
+                                                                  ('encode_timestamp',
+                                                                   TimeStampTransformer(granularity='month'))]),
+                                                  'hourly_timestamp'),
+                                                 ('numerical_pipeline',
+                                                  Pipeline(steps=[('impute',
+                                                                   SimpleImputer(strategy='median')),
+                                                                  ('scale',
+                                                                   StandardScaler())...
+                                                   'std_sensor_F']),
+                                                 ('categorical_pipeline',
+                                                  Pipeline(steps=[('imputers',
+                                                                   SimpleImputer(strategy='most_frequent')),
+                                                                  ('encoder',
+                                                                   OneHotEncoder(handle_unknown='ignore',
+                                                                                 sparse_output=False))]),
+                                                  ['location', 'model',
+                                                   'state'])])),
+                ('classifier',
+                 RandomForestClassifier(max_depth=60, max_features='log2',
+                                        min_samples_split=3, n_estimators=380,
+                                        oob_score=True, random_state=42))])f1 score: 0.99 
+Precision score: 0.99 
+Recall score: 0.99 

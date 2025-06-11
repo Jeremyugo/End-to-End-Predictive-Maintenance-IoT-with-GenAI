@@ -1,7 +1,8 @@
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session
 from delta.tables import DeltaTable
 from utils.config import fetch_paths
 

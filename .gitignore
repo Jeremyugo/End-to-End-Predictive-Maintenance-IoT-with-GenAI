@@ -62,5 +62,9 @@ data/bronze/
 data/silver/
 data/gold/
 notebooks/
-model/
+!model/evaluation
+model/data
+!model/evaluation/predictions.csv
 mlruns/
+.github/
+.tmp_*/
