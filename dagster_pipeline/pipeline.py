@@ -1,9 +1,9 @@
 from dagster import asset, AssetExecutionContext, Definitions
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 from loguru import logger as log
 
-# Import main functions from each script
 from src.data_ingestion import main as data_ingestion_main
 from src.data_transformation import compute_sensor_aggregations
 from src.create_training_set import create_training_data
