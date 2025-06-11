@@ -1,9 +1,10 @@
 import os
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import mlflow.sklearn
-from create_spark_session import spark
+from src.create_spark_session import create_spark_session
 from utils.custom_sklearn_transformers import DateTimeImputer, TimeStampTransformer
 from utils.config import (
         path_to_base_model, path_to_label_encoder, path_to_training_data, path_to_test_data
@@ -27,6 +28,7 @@ import numpy as np
 from loguru import logger as log
 import shutil
 
+spark = create_spark_session()
 
 def cleanup_temp_model_artifacts() -> None:
     paths_ = [path_to_label_encoder, path_to_base_model]

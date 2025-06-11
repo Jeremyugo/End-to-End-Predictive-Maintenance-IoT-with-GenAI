@@ -1,5 +1,6 @@
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from pyspark.sql import SparkSession
 from utils.config import S3_ACCESS_KEY, S3_ENDPOINT_URL, S3_SECRET_KEY, path_to_spark_jars

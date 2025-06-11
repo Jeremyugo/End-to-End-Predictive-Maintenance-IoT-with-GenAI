@@ -1,11 +1,11 @@
 import sys
-sys.path.append('..')
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import importlib
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType
 from pyspark.sql.streaming import StreamingQuery
-from create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session
 from utils.config import fetch_paths
 
 from loguru import logger as log
