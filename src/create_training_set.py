@@ -6,6 +6,8 @@ from src.create_spark_session import create_spark_session
 from delta.tables import DeltaTable
 from utils.config import fetch_paths
 
+import pyspark.sql.functions as F
+
 from loguru import logger as log
 
 spark = create_spark_session()
@@ -28,6 +30,7 @@ def create_training_data() -> None:
         sensor_hourly
         .join(turbine, 'turbine_id', 'inner')
         .join(health, 'turbine_id', 'inner')
+        .withColumn('sensor_status', F.when(health['abnormal_sensor'] == 'ok', 'ok').otherwise('faulty'))
         .write.format('delta')
         .mode('overwrite')
         .option('overwriteSchema', 'true')

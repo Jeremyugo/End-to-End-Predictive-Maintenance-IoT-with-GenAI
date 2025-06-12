@@ -76,9 +76,9 @@ def model_evaluation(
     output_path.mkdir(parents=True, exist_ok=True)
     output_data.to_csv(output_path / "predictions.csv", index=False)
     
-    f1score = f1_score(y_test, yhat_test, average='weighted')
-    pr_score = precision_score(y_test, yhat_test, average='weighted')
-    re_score = recall_score(y_test, yhat_test, average='weighted')
+    f1score = f1_score(y_test, yhat_test)
+    pr_score = precision_score(y_test, yhat_test)
+    re_score = recall_score(y_test, yhat_test)
     
     (Path(evaluation_output) / "score.txt").write_text(
         f"Scored with the following model:\n{format(model)}"
@@ -121,7 +121,7 @@ def model_promotion(
         predictions[f"{model_name}:{model_version}"] = mdl.predict(X_test)
         
         scores[f"{model_name}:{model_version}"] = f1_score(
-            y_test, predictions[f"{model_name}:{model_version}"], average='weighted')
+            y_test, predictions[f"{model_name}:{model_version}"])
 
     if scores:
         if score >= max(list(scores.values())):

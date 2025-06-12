@@ -40,10 +40,11 @@ This project implements a scalable data and AI pipeline using Spark Delta Lake, 
 
 ### TODO:
 - [x] Create Data Ingestion and Transformation scripts
-- [x] Create Training dataset Script
+- [x] Create Model Training Script
 - [x] Create Model Evaluation Script
 - [x] Create Model Registration Script
 - [x] Create Dagster Pipeline with asset definitions
-- [ ] Create MS Power BI dashboard
 - [ ] Build AI-Agent
+- [ ] Build Streamlit FrontEnd
+- [ ] Create MS Power BI dashboard
 - [ ] Implement Data Drift Check
