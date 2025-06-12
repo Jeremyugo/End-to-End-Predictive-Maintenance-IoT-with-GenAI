@@ -53,7 +53,7 @@ node_modules/
 # Ignore config files
 config.py
 
-# Ignore directories
+# Ignore directories and files
 utils/
 checkpoints/
 artifacts/
@@ -68,3 +68,5 @@ model/data
 mlruns/
 .github/
 .tmp_*/
+*.ipynb
+*chroma_langchain_db/
