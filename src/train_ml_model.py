@@ -95,7 +95,7 @@ def load_training_data() -> pd.DataFrame:
         'location',
         'model',
         'state',
-        'abnormal_sensor'
+        'sensor_status'
     ]
 
     training_data = training_data.filter(columns)
@@ -106,7 +106,7 @@ def load_training_data() -> pd.DataFrame:
 
 def process_training_data(
         training_data: pd.DataFrame, 
-        target_col: str = 'abnormal_sensor'
+        target_col: str = 'sensor_status'
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Pipeline]:
     
     train_split, target_split = training_data.drop(columns=[target_col]), training_data[target_col]
@@ -149,7 +149,7 @@ def objective(params: dict[str, Any], X_train: pd.DataFrame, y_train: np.ndarray
     
     # Get predictions and score
     y_pred = model.predict(X_train)
-    f1 = f1_score(y_train, y_pred, average='weighted')
+    f1 = f1_score(y_train, y_pred)
     
     return {'loss': -f1, 'status': STATUS_OK, 'model': model, 'params': params}
 
@@ -205,9 +205,9 @@ def main() -> None:
     # Log best parameters and metrics
     mlflow.log_params(best_params)
     mlflow.log_metrics({
-        'best_f1_score': f1_score(y_test, y_pred, average='weighted'),
-        'best_precision_score': precision_score(y_test, y_pred, average='weighted'),
-        'best_recall_score': recall_score(y_test, y_pred, average='weighted'),
+        'best_f1_score': f1_score(y_test, y_pred),
+        'best_precision_score': precision_score(y_test, y_pred),
+        'best_recall_score': recall_score(y_test, y_pred),
     })
     
     # Save only the best model
