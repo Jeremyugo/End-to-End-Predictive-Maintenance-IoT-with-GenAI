@@ -1,13 +1,14 @@
 import os
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parents[3]))
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
 from utils.config import path_to_training_data
+import pyspark.sql.functions as F
 from src.create_spark_session import create_spark_session
 spark = create_spark_session()
 
@@ -26,7 +27,7 @@ def create_vectore_store(
 
     std_sensor_colums = sorted([col for col in spark_df.columns if col.startswith('std_')])
     selected_columns = std_sensor_colums + ['location', 'maintenance_report', 'model', 'state']
-    filtered_df = spark_df.select(*selected_columns)
+    filtered_df = spark_df.select(*selected_columns).filter(F.col('maintenance_report').isNotNull())
     
     rows = filtered_df.collect()
     documents = []
@@ -56,6 +57,28 @@ def create_vectore_store(
     vectore_store.add_documents(documents=documents, ids=ids)
     
     return vectore_store
+
+
+def load_vector_store_as_retrieval(
+        collection_name: str = 'predictive_maintenance_report',
+        db_location: str = chroma_db_location,
+        embedding: OllamaEmbeddings = embedding
+    ) -> Chroma:
+    
+    
+    vector_store = Chroma(
+        collection_name=collection_name,
+        persist_directory=db_location,
+        embedding_function=embedding
+    )
+
+    return vector_store.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={
+                'k': 5,
+                'score_threshold': 0.5
+            }
+    )
 
 
 if __name__ == '__main__':
