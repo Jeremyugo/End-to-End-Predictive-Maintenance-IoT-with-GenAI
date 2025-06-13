@@ -10,7 +10,6 @@ from langchain_core.documents import Document
 from utils.config import path_to_training_data
 import pyspark.sql.functions as F
 from src.create_spark_session import create_spark_session
-spark = create_spark_session()
 
 
 chroma_db_location = './chroma_langchain_db'
@@ -23,6 +22,7 @@ def create_vectore_store(
         db_location: str = chroma_db_location,
         embedding: OllamaEmbeddings = embedding
     ) -> Chroma:
+    spark = create_spark_session()
     spark_df = spark.read.format('delta').load(path_to_training_data)
 
     std_sensor_colums = sorted([col for col in spark_df.columns if col.startswith('std_')])
