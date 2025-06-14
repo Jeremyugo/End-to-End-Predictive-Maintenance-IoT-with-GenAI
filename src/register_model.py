@@ -13,6 +13,14 @@ from utils.config import path_to_base_model, path_to_label_encoder, evaluation_p
 
 
 class CustomModel(mlflow.pyfunc.PythonModel):
+    """
+    A custom model class for MLflow that includes a base model and a label encoder.
+
+    Args:
+        label_encoder_uri (str): URI of the label encoder.
+        base_uri (str): URI of the base model.
+    """
+
     def __init__(self, label_encoder_uri: str, base_uri: str):
         self.label_encoder = mlflow.sklearn.load_model(label_encoder_uri)
         self.model = mlflow.sklearn.load_model(base_uri)
@@ -25,6 +33,12 @@ class CustomModel(mlflow.pyfunc.PythonModel):
     
 
 def main() -> None:
+    """
+    Main function to register the model if the deploy flag is set to 1.
+
+    Returns:
+        None
+    """
     
     with open((Path(evaluation_path) / 'deploy_flag.txt'), 'rb') as infile:
         deploy_flag = int(infile.read())

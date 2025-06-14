@@ -14,10 +14,29 @@ checkpoint_path, _, delta_lake_path = fetch_paths()
 
 
 def load_delta_table(file_path: str) -> DeltaTable:
+    """
+    Load a Delta table from the specified file path.
+
+    Args:
+        file_path (str): Path to the Delta table.
+
+    Returns:
+        DeltaTable: Loaded Delta table.
+    """
     return spark.read.format('delta').load(file_path)
 
 
 def write_delta_table(delta_table, file_path: str) -> None:
+    """
+    Write a Delta table to the specified file path.
+
+    Args:
+        delta_table: Delta table to write.
+        file_path (str): Path to save the Delta table.
+
+    Returns:
+        None
+    """
     (
         delta_table.write.format('delta')
         .mode('overwrite')
@@ -29,6 +48,12 @@ def write_delta_table(delta_table, file_path: str) -> None:
 
 
 def compute_sensor_aggregations() -> None:
+    """
+    Compute sensor aggregations and save them to a Delta table.
+
+    Returns:
+        None
+    """
     log.info('Started computing sensor aggregations')
     sensor_table = load_delta_table(f'{delta_lake_path}/bronze/bronze_incoming_data')
     
@@ -53,6 +78,15 @@ def compute_sensor_aggregations() -> None:
     
 
 def upsert_to_silver(microbatch_df) -> None:
+    """
+    Upsert microbatch data into the silver Delta table.
+
+    Args:
+        microbatch_df: DataFrame containing microbatch data.
+
+    Returns:
+        None
+    """
     silver_path = f'{delta_lake_path}/silver/silver_sensor_hourly'
     
     if DeltaTable.isDeltaTable(spark, silver_path):
@@ -74,6 +108,12 @@ def upsert_to_silver(microbatch_df) -> None:
 
 
 def compute_sensor_aggragation_using_watermark() -> None:
+    """
+    Compute sensor aggregations using watermarking and write them to a Delta table.
+
+    Returns:
+        None
+    """
     sensor_table = load_delta_table(f'{delta_lake_path}/bronze/bronze_incoming_data')
     
     sensor_columns = [col for col in sensor_table.columns if 'sensor' in col]

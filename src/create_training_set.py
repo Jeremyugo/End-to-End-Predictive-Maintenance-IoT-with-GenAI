@@ -15,6 +15,12 @@ _, _, delta_lake_path = fetch_paths()
 
 
 def load_required_turbine_data() -> tuple[DeltaTable, DeltaTable, DeltaTable]:
+    """
+    Load required turbine data from Delta tables.
+
+    Returns:
+        tuple: Delta tables for turbine, health, and sensor hourly data.
+    """
     turbine = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_turbine')
     health = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_historical_turbine_status')
     sensor_hourly = spark.read.format('delta').load(f'{delta_lake_path}/silver/silver_sensor_hourly')
@@ -23,6 +29,12 @@ def load_required_turbine_data() -> tuple[DeltaTable, DeltaTable, DeltaTable]:
 
 
 def create_training_data() -> None:
+    """
+    Create a training dataset by joining turbine, health, and sensor hourly data.
+
+    Returns:
+        None
+    """
     log.info('loading turbine data')
     turbine, health, sensor_hourly = load_required_turbine_data()
     

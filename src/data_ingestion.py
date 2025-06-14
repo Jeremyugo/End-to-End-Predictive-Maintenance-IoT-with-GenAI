@@ -16,6 +16,16 @@ checkpoint_path, landing_path, delta_lake_path = fetch_paths()
 
 
 def infer_schema(file_path: str, format: str) -> StructType:
+    """
+    Infer the schema of a file based on its format.
+
+    Args:
+        file_path (str): Path to the file.
+        format (str): Format of the file (e.g., 'json', 'parquet').
+
+    Returns:
+        StructType: Inferred schema of the file.
+    """
     match format:
         case 'json':
             inferred_schema = spark.read.json(file_path).schema
@@ -32,6 +42,17 @@ def ingest_data(
     table_name: str,
     quality: str,
     ) -> StreamingQuery|None:
+    """
+    Ingest streaming data and write it to a Delta table.
+
+    Args:
+        format (str): Format of the input data.
+        table_name (str): Name of the table to ingest.
+        quality (str): Quality level of the data (e.g., 'bronze').
+
+    Returns:
+        StreamingQuery|None: Streaming query object or None if ingestion fails.
+    """
 
     path_to_file = f'{landing_path}/{table_name}'
     path_to_checkpoint = f'{checkpoint_path}/{quality}_{table_name}'
@@ -66,6 +87,13 @@ def ingest_data(
     
 
 def main() -> None:
+    """
+    Main function to ingest various data streams.
+
+    Returns:
+        None
+    """
+
     # ingest turbine data
     turbine_query = ingest_data(
         table_name='turbine',

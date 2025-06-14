@@ -22,6 +22,18 @@ def create_vectore_store(
         db_location: str = chroma_db_location,
         embedding: OllamaEmbeddings = embedding
     ) -> Chroma:
+    """
+    Create a vector store using training data and embeddings.
+
+    Args:
+        path_to_training_data (str): Path to the training data.
+        collection_name (str): Name of the collection for the vector store.
+        db_location (str): Directory to persist the vector store.
+        embedding (OllamaEmbeddings): Embedding model to use.
+
+    Returns:
+        Chroma: The created vector store.
+    """
     spark = create_spark_session()
     spark_df = spark.read.format('delta').load(path_to_training_data)
 
@@ -64,6 +76,17 @@ def load_vector_store_as_retrieval(
         db_location: str = chroma_db_location,
         embedding: OllamaEmbeddings = embedding
     ) -> Chroma:
+    """
+    Load an existing vector store and return it as a retriever.
+
+    Args:
+        collection_name (str): Name of the collection for the vector store.
+        db_location (str): Directory where the vector store is persisted.
+        embedding (OllamaEmbeddings): Embedding model to use.
+
+    Returns:
+        Chroma: The vector store as a retriever.
+    """
     
     
     vector_store = Chroma(
@@ -73,10 +96,8 @@ def load_vector_store_as_retrieval(
     )
 
     return vector_store.as_retriever(
-            search_type="similarity_score_threshold",
             search_kwargs={
                 'k': 5,
-                'score_threshold': 0.5
             }
     )
 
