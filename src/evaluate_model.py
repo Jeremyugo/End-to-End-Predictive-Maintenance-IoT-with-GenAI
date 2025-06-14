@@ -23,6 +23,12 @@ from utils.config import (
 
 
 def main() -> None:
+    """
+    Main function to evaluate and promote the machine learning model.
+
+    Returns:
+        None
+    """
     log.info('Loading test data')
     test_data = pd.read_csv(path_to_test_data)
     X_test = test_data.drop(columns=['target'])
@@ -64,6 +70,19 @@ def model_evaluation(
         evaluation_output: str, 
         label_encoder: BaseEstimator
     ) -> tuple[np.ndarray, float]:
+    """
+    Evaluate the model and log metrics.
+
+    Args:
+        X_test (np.ndarray): Test features.
+        y_test (np.ndarray): Test labels.
+        model (BaseEstimator): The trained model.
+        evaluation_output (str): Path to save evaluation results.
+        label_encoder (BaseEstimator): Label encoder for decoding predictions.
+
+    Returns:
+        tuple: Predicted labels and F1 score.
+    """
     
     output_data = X_test.copy()
     
@@ -106,6 +125,20 @@ def model_promotion(
         yhat_test: np.ndarray,
         score: float
     ) -> None:
+    """
+    Promote the model based on evaluation metrics and generate comparison plots.
+
+    Args:
+        model_name (str): Name of the model.
+        evaluation_output (str): Path to save evaluation results.
+        X_test (np.ndarray): Test features.
+        y_test (np.ndarray): Test labels.
+        yhat_test (np.ndarray): Predicted labels.
+        score (float): F1 score of the current model.
+
+    Returns:
+        None
+    """
     
     scores = {}
     predictions = {}

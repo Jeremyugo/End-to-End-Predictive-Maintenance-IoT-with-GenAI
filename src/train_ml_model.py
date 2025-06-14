@@ -31,6 +31,12 @@ import shutil
 spark = create_spark_session()
 
 def cleanup_temp_model_artifacts() -> None:
+    """
+    Remove temporary model artifacts if they exist.
+
+    Returns:
+        None
+    """
     paths_ = [path_to_label_encoder, path_to_base_model]
     
     for path in paths_:
@@ -41,6 +47,16 @@ def cleanup_temp_model_artifacts() -> None:
 
 
 def build_model_training_pipeline(training_data: pd.DataFrame, model_params: dict) -> Pipeline:
+    """
+    Build a machine learning pipeline for training.
+
+    Args:
+        training_data (pd.DataFrame): Training data.
+        model_params (dict): Parameters for the model.
+
+    Returns:
+        Pipeline: The machine learning pipeline.
+    """
     rnd_clf = RandomForestClassifier(**model_params)
     
     preprocessing_pipeline = ColumnTransformer(
@@ -80,6 +96,12 @@ def build_model_training_pipeline(training_data: pd.DataFrame, model_params: dic
 
 
 def load_training_data() -> pd.DataFrame:
+    """
+    Load training data from the Delta format and convert it to a Pandas DataFrame.
+
+    Returns:
+        pd.DataFrame: The training data.
+    """
     sensor_training_data = spark.read.format('delta').load(path_to_training_data)
     training_data = sensor_training_data.toPandas()
     
@@ -108,7 +130,16 @@ def process_training_data(
         training_data: pd.DataFrame, 
         target_col: str = 'sensor_status'
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Pipeline]:
-    
+    """
+    Process training data and split it into training and testing sets.
+
+    Args:
+        training_data (pd.DataFrame): The training data.
+        target_col (str): The target column name.
+
+    Returns:
+        tuple: Training and testing data splits, and the label encoder.
+    """
     train_split, target_split = training_data.drop(columns=[target_col]), training_data[target_col]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -123,6 +154,12 @@ def process_training_data(
 
 
 def define_search_space() -> dict[str, Any]:
+    """
+    Define the hyperparameter search space for model optimization.
+
+    Returns:
+        dict: The hyperparameter search space.
+    """
     space = {
         'n_estimators': hp.quniform('n_estimators', 100, 1000, 10),
         'max_depth': hp.quniform('max_depth', 10, 100, 5),
@@ -136,18 +173,26 @@ def define_search_space() -> dict[str, Any]:
 
 
 def objective(params: dict[str, Any], X_train: pd.DataFrame, y_train: np.ndarray) -> dict[str, float|dict|str]:
-    # Convert hyperopt params to proper types
+    """
+    Objective function for hyperparameter optimization.
+
+    Args:
+        params (dict): Hyperparameters.
+        X_train (pd.DataFrame): Training features.
+        y_train (np.ndarray): Training labels.
+
+    Returns:
+        dict: Optimization results including loss, model, and parameters.
+    """
     params['n_estimators'] = int(params['n_estimators'])
     params['max_depth'] = int(params['max_depth'])
     params['min_samples_split'] = int(params['min_samples_split'])
     params['min_samples_leaf'] = int(params['min_samples_leaf'])
     
     log.info('training ml model')
-    # Build and train model
     model = build_model_training_pipeline(X_train, params)
     model.fit(X_train, y_train)
     
-    # Get predictions and score
     y_pred = model.predict(X_train)
     f1 = f1_score(y_train, y_pred)
     
@@ -159,11 +204,27 @@ def wrapped_objective(
     X_train: pd.DataFrame,
     y_train: np.ndarray,
 ) -> dict:
+    """
+    Wrapper for the objective function.
 
+    Args:
+        params (dict): Hyperparameters.
+        X_train (pd.DataFrame): Training features.
+        y_train (np.ndarray): Training labels.
+
+    Returns:
+        dict: Results from the objective function.
+    """
     return objective(params, X_train, y_train)
 
 
 def main() -> None:
+    """
+    Main function to execute the machine learning model training pipeline.
+
+    Returns:
+        None
+    """
     
     cleanup_temp_model_artifacts()
     log.info('loading training data')
@@ -174,35 +235,29 @@ def main() -> None:
     
     mlflow.sklearn.save_model(label_encoder, path=path_to_label_encoder)
     
-    # save test data to model directory for model evaluation
     X_test['target'] = y_test
     X_test.to_csv(path_to_test_data, index=False)
     
     signature = infer_signature(X_train, y_train)
     
     log.info('initializing trials')
-    # Initialize trials object to store optimization results
     trials = Trials()
     
-    # Run hyperparameter optimization
     best = fmin(
         fn=lambda p: wrapped_objective(p, X_train, y_train),
         space=define_search_space(),
         algo=tpe.suggest,
-        max_evals=50,  # Number of optimization iterations
+        max_evals=50, 
         trials=trials
     )
     log.success('trials completed')
     
-    # Get the best trial
     best_trial = min(trials.trials, key=lambda x: x['result']['loss'])
     best_model = best_trial['result']['model']
     best_params = best_trial['result']['params']
     
-    # Get predictions and calculate metrics for best model
     y_pred = best_model.predict(X_test)
     
-    # Log best parameters and metrics
     mlflow.log_params(best_params)
     mlflow.log_metrics({
         'best_f1_score': f1_score(y_test, y_pred),
@@ -210,7 +265,6 @@ def main() -> None:
         'best_recall_score': recall_score(y_test, y_pred),
     })
     
-    # Save only the best model
     mlflow.sklearn.save_model(
         sk_model=best_model,
         path=path_to_base_model,

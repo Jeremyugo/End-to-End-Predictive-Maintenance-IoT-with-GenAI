@@ -6,6 +6,15 @@ from pyspark.sql import SparkSession
 from utils.config import S3_ACCESS_KEY, S3_ENDPOINT_URL, S3_SECRET_KEY, path_to_spark_jars
 
 def create_spark_session(storage: str = 'local') -> SparkSession:
+    """
+    Create a Spark session for local or S3 storage.
+
+    Args:
+        storage (str): Storage type ('local' or 's3').
+
+    Returns:
+        SparkSession: Configured Spark session.
+    """
     if storage == 'local':
         spark = (
             SparkSession.builder
