@@ -145,5 +145,5 @@ def compute_sensor_aggragation_using_watermark(file_path: str = file_path) -> No
 
 
 if __name__ == '__main__':
-    compute_sensor_aggregations() # should be used for testing
-    #compute_sensor_aggragation_using_watermark() # should be used in production
+    #compute_sensor_aggregations() # should be used for testing
+    compute_sensor_aggragation_using_watermark() # should be used in production
