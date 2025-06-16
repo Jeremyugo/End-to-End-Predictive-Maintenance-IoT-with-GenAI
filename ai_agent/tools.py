@@ -8,10 +8,12 @@ import pandas as pd
 import numpy as np
 import mlflow
 
+from functools import lru_cache
+
 from ai_agent.vector import load_vector_store_as_retrieval
 from utils.helper_functions import get_model_source
 from utils.config import path_to_training_data
-from src.create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session, SparkConfig
 
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
@@ -63,6 +65,7 @@ def turbine_maintenance_predictor(input_data: list[str | float]) -> np.ndarray:
 
 
 @tool
+@lru_cache(maxsize=128) # data is static so lru_cache decorator is ideal here
 def turbine_maintenance_reports_predictor(input_query: str) -> Document:
     """
         takes sensor_readings as input 
@@ -85,13 +88,14 @@ def turbine_maintenance_reports_predictor(input_query: str) -> Document:
 
 
 @tool
+@lru_cache(maxsize=128)
 def turbine_specifications_retriever(turbine_ids: str) -> list[dict]:
     """
         takes turbine_id as input and retrieves turbine specifications
     """
     
     log.info(f"using turbine_specifications_retriever tool")
-    spark = create_spark_session()
+    config = SparkConfig(storage='local', app_name='iot_data_ingestion')
     turbine_ids = turbine_ids.split() if isinstance(turbine_ids, str) else turbine_ids
     
     cols = [
@@ -105,15 +109,16 @@ def turbine_specifications_retriever(turbine_ids: str) -> list[dict]:
     
     window_spec = Window.partitionBy("turbine_id").orderBy(F.col("hourly_timestamp").desc())
     
-    spark_df = (
-        spark.read.format('delta')
-        .load(path_to_training_data)
-        .filter(F.col('turbine_id').isin(turbine_ids))
-        .withColumn("row_num", row_number().over(window_spec))
-        .filter(F.col("row_num") == 1)
-        .drop("row_num")
-        .select(*cols)
-    )
+    with create_spark_session(config) as spark:
+        spark_df = (
+            spark.read.format('delta')
+            .load(path_to_training_data)
+            .filter(F.col('turbine_id').isin(turbine_ids))
+            .withColumn("row_num", row_number().over(window_spec))
+            .filter(F.col("row_num") == 1)
+            .drop("row_num")
+            .select(*cols)
+        )
     
     llm_data = spark_df.toPandas().to_dict(orient='records')
 
