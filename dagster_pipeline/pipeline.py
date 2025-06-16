@@ -1,4 +1,4 @@
-from dagster import asset, AssetExecutionContext, Definitions
+from dagster import asset, AssetExecutionContext, Definitions, ScheduleDefinition
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -85,3 +85,8 @@ defs = Definitions(assets=[
     evaluate_model,
     register_model
 ])
+
+hourly_schedule = ScheduleDefinition(
+    job=defs.get_job(),
+    cron_schedule="0 * * * *",  # runs every hour
+)

@@ -11,6 +11,7 @@ Pipeline(steps=[('preprocessor',
                                                                    SimpleImputer(strategy='median')),
                                                                   ('scale',
                                                                    StandardScaler())...
+                                                   'std_sensor_E',
                                                    'std_sensor_F']),
                                                  ('categorical_pipeline',
                                                   Pipeline(steps=[('imputers',
@@ -21,8 +22,8 @@ Pipeline(steps=[('preprocessor',
                                                   ['location', 'model',
                                                    'state'])])),
                 ('classifier',
-                 RandomForestClassifier(max_depth=75, max_features='log2',
-                                        min_samples_split=12, n_estimators=460,
-                                        oob_score=True, random_state=42))])f1 score: 0.99 
-Precision score: 0.99 
+                 RandomForestClassifier(max_depth=90, min_samples_split=4,
+                                        n_estimators=1000, oob_score=True,
+                                        random_state=42))])f1 score: 0.98 
+Precision score: 0.98 
 Recall score: 0.98 
