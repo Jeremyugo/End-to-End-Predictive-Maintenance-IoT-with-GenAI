@@ -25,7 +25,7 @@ turbine_maintenance_predictor_instructions = """
     
     ---
     **Turbine Status**
-    Give a summary of the predictions of each turbine_id 
+    Give a summary of the predictions of each turbine_id in normal sized text
     ---
     
 """
