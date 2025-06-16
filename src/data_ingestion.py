@@ -2,20 +2,20 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType
 from pyspark.sql.streaming import StreamingQuery
-from src.create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session, SparkConfig
 from utils.config import fetch_paths
 
 from loguru import logger as log
 
-spark = create_spark_session()
+config = SparkConfig(storage='local', app_name='iot_data_ingestion')
 checkpoint_path, landing_path, delta_lake_path = fetch_paths()
 
 
-
-def infer_schema(file_path: str, format: str) -> StructType:
+def infer_schema(spark: SparkSession, file_path: str, format: str) -> StructType:
     """
     Infer the schema of a file based on its format.
 
@@ -59,15 +59,16 @@ def ingest_data(
     output_path = f'{delta_lake_path}/{quality}/{quality}_{table_name}'
     
     try:
-        # read streaming data with the specified schema
-        log.info(f'Ingesting - {table_name} data')
-        stream_df = (
-            spark.readStream
-            .format(format)
-            .option('maxFilesPerTrigger', 1)
-            .schema(infer_schema(path_to_file, format))
-            .load(path_to_file)
-        )
+        with create_spark_session(config) as spark:
+            # read streaming data with the specified schema
+            log.info(f'Ingesting - {table_name} data')
+            stream_df = (
+                spark.readStream
+                .format(format)
+                .option('maxFilesPerTrigger', 1)
+                .schema(infer_schema(spark, path_to_file, format))
+                .load(path_to_file)
+            )
         
         # write the stream to a Delta table
         return (
@@ -82,7 +83,7 @@ def ingest_data(
         
         
     except Exception as e:
-        print(f"Error reading stream from {path_to_file}: {e}")
+        log.error(f"Error reading stream from {path_to_file}: {e}")
         return
     
 

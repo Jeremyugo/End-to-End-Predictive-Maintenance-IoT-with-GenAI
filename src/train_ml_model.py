@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import mlflow.sklearn
-from src.create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session, SparkConfig
 from utils.custom_sklearn_transformers import DateTimeImputer, TimeStampTransformer
 from utils.config import (
         path_to_base_model, path_to_label_encoder, path_to_training_data, path_to_test_data
@@ -28,7 +28,7 @@ import numpy as np
 from loguru import logger as log
 import shutil
 
-spark = create_spark_session()
+config = SparkConfig(storage='local', app_name='iot_data_ingestion')
 
 def cleanup_temp_model_artifacts() -> None:
     """
@@ -102,7 +102,9 @@ def load_training_data() -> pd.DataFrame:
     Returns:
         pd.DataFrame: The training data.
     """
-    sensor_training_data = spark.read.format('delta').load(path_to_training_data)
+    with create_spark_session(config) as spark:
+        sensor_training_data = spark.read.format('delta').load(path_to_training_data)
+    
     training_data = sensor_training_data.toPandas()
     
     columns = [

@@ -2,28 +2,30 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.create_spark_session import create_spark_session
+from src.create_spark_session import create_spark_session, SparkConfig
 from delta.tables import DeltaTable
 from utils.config import fetch_paths
 
 import pyspark.sql.functions as F
+from pyspark.sql import DataFrame
 
 from loguru import logger as log
 
-spark = create_spark_session()
+config = SparkConfig(storage='local', app_name='iot_data_ingestion')
 _, _, delta_lake_path = fetch_paths()
 
 
-def load_required_turbine_data() -> tuple[DeltaTable, DeltaTable, DeltaTable]:
+def load_required_turbine_data() -> tuple[DataFrame, DataFrame, DataFrame]:
     """
     Load required turbine data from Delta tables.
 
     Returns:
         tuple: Delta tables for turbine, health, and sensor hourly data.
     """
-    turbine = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_turbine')
-    health = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_historical_turbine_status')
-    sensor_hourly = spark.read.format('delta').load(f'{delta_lake_path}/silver/silver_sensor_hourly')
+    with create_spark_session(config) as spark:
+        turbine = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_turbine')
+        health = spark.read.format('delta').load(f'{delta_lake_path}/bronze/bronze_historical_turbine_status')
+        sensor_hourly = spark.read.format('delta').load(f'{delta_lake_path}/silver/silver_sensor_hourly')
     
     return turbine, health, sensor_hourly
 
