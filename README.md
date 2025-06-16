@@ -30,6 +30,7 @@ This project implements a scalable data and AI pipeline using Spark Delta Lake, 
 
 ### 5. Workflow Orchestration
 - **Dagster** used to schedule and automate pipeline steps
+![Dagster Pipeline](./images/dagster_pipeline_status.png)
 
 ### 6. GenAI Agent System
 - Custom GenAI agents assist technicians:
