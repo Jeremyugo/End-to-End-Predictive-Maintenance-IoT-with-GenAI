@@ -154,7 +154,7 @@ def model_promotion(
         predictions[f"{model_name}:{model_version}"] = mdl.predict(X_test)
         
         scores[f"{model_name}:{model_version}"] = f1_score(
-            y_test, predictions[f"{model_name}:{model_version}"])
+            y_test, predictions[f"{model_name}:{model_version}"], pos_label='ok')
 
     if scores:
         if score >= max(list(scores.values())):
