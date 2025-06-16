@@ -61,3 +61,7 @@ def interact_with_agent(query: str) -> str:
     })
 
     return raw_response['output']
+
+
+if __name__ == '__main__':
+    interact_with_agent('fetch me information on this turbine 0b2328e0-8c09-eed4-f0ba-edd31057cf6e')

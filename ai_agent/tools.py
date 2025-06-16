@@ -56,6 +56,7 @@ def turbine_maintenance_predictor(input_data: list[str | float]) -> np.ndarray:
     log.info(f"using turbine_maintenance_predictor tool")
     input_data = convert_to_pandas_df(input_data)
     
+    log.info(f"input_data: {repr(input_data)}")
     if isinstance(input_data, pd.DataFrame):
         model = mlflow.pyfunc.load_model(model_uri=model_uri)
         pred = model.predict(input_data)
@@ -107,9 +108,8 @@ def turbine_specifications_retriever(turbine_ids: str) -> list[dict]:
         'maintenance_report', 'sensor_status'
     ]
     
-    window_spec = Window.partitionBy("turbine_id").orderBy(F.col("hourly_timestamp").desc())
-    
     with create_spark_session(config) as spark:
+        window_spec = Window.partitionBy("turbine_id").orderBy(F.col("hourly_timestamp").desc())
         spark_df = (
             spark.read.format('delta')
             .load(path_to_training_data)
@@ -120,6 +120,6 @@ def turbine_specifications_retriever(turbine_ids: str) -> list[dict]:
             .select(*cols)
         )
     
-    llm_data = spark_df.toPandas().to_dict(orient='records')
+        llm_data = spark_df.toPandas().to_dict(orient='records')
 
     return llm_data
