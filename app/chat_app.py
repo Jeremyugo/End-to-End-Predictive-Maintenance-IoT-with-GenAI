@@ -5,8 +5,13 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import streamlit as st
 from ai_agent.agent import interact_with_agent
 
+st.set_page_config(
+    page_title="Predictive Maintenance Agent 🤖",
+    layout="wide",
+)
+
 def run_app():
-    st.title("Chat with Predictive Maintenance Agent")
+    st.title("Predictive Maintenance AI Agent 🤖")
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -28,3 +33,7 @@ def run_app():
         st.session_state.messages.append({"role": "assistant", "content": response})
         
     return 
+
+
+if __name__ == '__main__':
+    run_app()
