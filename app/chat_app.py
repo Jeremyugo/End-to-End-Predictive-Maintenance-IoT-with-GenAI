@@ -4,6 +4,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st
 from ai_agent.agent import interact_with_agent
+from langchain.memory import ConversationBufferMemory
 
 st.set_page_config(
     page_title="Predictive Maintenance Agent 🤖",
@@ -12,25 +13,40 @@ st.set_page_config(
 
 def run_app():
     st.title("Predictive Maintenance AI Agent 🤖")
-
+    
+    if st.button("New Chat"):
+        st.session_state.pop('messages', None)
+        st.session_state.pop('memory', None)
+        st.rerun()
+    
+    agent_memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True
+    )
+    
+    st.session_state.setdefault('memory', agent_memory)
     st.session_state.setdefault('messages', [])
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-
+    
     if user_query := st.chat_input("Ask a question:"):
         with st.chat_message("user"):
             st.markdown(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
 
-        with st.spinner("The agent is thinking..."):
-            response = interact_with_agent(user_query)
+        with st.spinner("Thinking..."):
+            response = interact_with_agent(
+                query=user_query,
+                memory=st.session_state['memory']
+                )
 
         with st.chat_message("assistant"):
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
         
+
     return 
 
 

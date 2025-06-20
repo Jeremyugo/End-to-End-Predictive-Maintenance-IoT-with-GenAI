@@ -17,12 +17,8 @@ openAI_api_key = os.environ.get('OPENAI_API_KEY')
 
 llm = ChatOpenAI(model='gpt-3.5-turbo', api_key=openAI_api_key)
 
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    return_messages=True
-)
 
-def interact_with_agent(query: str) -> str:
+def interact_with_agent(query: str, memory: ConversationBufferMemory) -> str:
     """
     Interact with the agent to process a query and return the response.
 
@@ -61,6 +57,7 @@ def interact_with_agent(query: str) -> str:
     })
 
     return raw_response['output']
+
 
 
 if __name__ == '__main__':
