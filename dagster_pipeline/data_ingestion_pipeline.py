@@ -1,4 +1,4 @@
-from dagster import asset, AssetExecutionContext, Definitions, SensorDefinition
+from dagster import asset, AssetExecutionContext, Definitions, SensorDefinition, define_asset_job
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -42,15 +42,20 @@ def create_training_set(context: AssetExecutionContext) -> None:
         log.exception(e)
         raise
 
+define_job = define_asset_job("all_assets_job")
 
-defs = Definitions(assets=[
-    data_ingestion,
-    data_transformation,
-    create_training_set,
-])
-
-continuous_sensor = SensorDefinition(
-    name="continuous_data_ingestion_sensor",
-    job=defs.get_job(),
-    evaluation_fn=lambda _: True,  # Always triggers the job
+defs = Definitions(
+    assets=[
+        data_ingestion,
+        data_transformation,
+        create_training_set,
+    ],
+    jobs=[define_job],
+    sensors=[
+        SensorDefinition(
+            name="continuous_data_ingestion_sensor",
+            job=define_job,
+            evaluation_fn=lambda _: True,  # always triggers the job
+        )
+    ],
 )
