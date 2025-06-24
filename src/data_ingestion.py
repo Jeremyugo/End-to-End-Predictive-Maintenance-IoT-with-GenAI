@@ -38,6 +38,7 @@ def infer_schema(spark: SparkSession, file_path: str, format: str) -> StructType
 
 
 def ingest_data(
+    spark: SparkSession,
     format: str,
     table_name: str,
     quality: str,
@@ -59,17 +60,16 @@ def ingest_data(
     output_path = f'{delta_lake_path}/{quality}/{quality}_{table_name}'
     
     try:
-        with create_spark_session(config) as spark:
-            # read streaming data with the specified schema
-            log.info(f'Ingesting - {table_name} data')
-            stream_df = (
-                spark.readStream
-                .format(format)
-                .option('maxFilesPerTrigger', 1)
-                .schema(infer_schema(spark, path_to_file, format))
-                .load(path_to_file)
-            )
-        
+        # read streaming data with the specified schema
+        log.info(f'Ingesting - {table_name} data')
+        stream_df = (
+            spark.readStream
+            .format(format)
+            .option('maxFilesPerTrigger', 1)
+            .schema(infer_schema(spark, path_to_file, format))
+            .load(path_to_file)
+        )
+    
         # write the stream to a Delta table
         return (
             stream_df.writeStream
@@ -95,40 +95,45 @@ def main() -> None:
         None
     """
 
-    # ingest turbine data
-    turbine_query = ingest_data(
-        table_name='turbine',
-        format='json',
-        quality='bronze'
-    )
-    turbine_query.awaitTermination()
-    
+    with create_spark_session(config) as spark:
+        # ingest turbine data
+        turbine_query = ingest_data(
+            spark=spark,
+            table_name='turbine',
+            format='json',
+            quality='bronze'
+        )
+        turbine_query.awaitTermination()
+        
 
-    # ingest parts data
-    parts_stream = ingest_data(
-        table_name='parts',
-        format='json',
-        quality='bronze'
-    )
-    parts_stream.awaitTermination()
-
-
-    # ingest historical turbine status data
-    turbine_status_query = ingest_data(
-        table_name='historical_turbine_status',
-        format='json',
-        quality='bronze'
-    )
-    turbine_status_query.awaitTermination()
+        # ingest parts data
+        parts_stream = ingest_data(
+            spark=spark,
+            table_name='parts',
+            format='json',
+            quality='bronze'
+        )
+        parts_stream.awaitTermination()
 
 
-    # ingest incoming turbine data
-    incoming_turbine_status_query = ingest_data(
-        table_name='incoming_data',
-        format='parquet',
-        quality='bronze'
-    )
-    incoming_turbine_status_query.awaitTermination()
+        # ingest historical turbine status data
+        turbine_status_query = ingest_data(
+            spark=spark,
+            table_name='historical_turbine_status',
+            format='json',
+            quality='bronze'
+        )
+        turbine_status_query.awaitTermination()
+
+
+        # ingest incoming turbine data
+        incoming_turbine_status_query = ingest_data(
+            spark=spark,
+            table_name='incoming_data',
+            format='parquet',
+            quality='bronze'
+        )
+        incoming_turbine_status_query.awaitTermination()
     
     return
 
