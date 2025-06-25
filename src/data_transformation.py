@@ -123,9 +123,9 @@ def compute_sensor_aggragation_using_watermark(file_path: str = file_path) -> No
         
         sensor_table = (
             sensor_table
-            .withColumn('event_time', F.to_timestamp(F.col('timestamp')))
+            .withColumn('event_time', F.current_timestamp())
             .withWatermark('event_time', '3 hours') 
-            .withColumn('hourly_timestamp', F.date_trunc('hour', F.col('event_time')))
+            .withColumn('hourly_timestamp', F.date_trunc('hour', F.from_unixtime(F.col('timestamp').cast('long'))))
             .groupBy('turbine_id', 'hourly_timestamp')
             .agg(*aggregations)
             .dropDuplicates(['turbine_id', 'hourly_timestamp'])
