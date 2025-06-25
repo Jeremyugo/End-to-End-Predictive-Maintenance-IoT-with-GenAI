@@ -18,7 +18,7 @@ from mlflow.tracking import MlflowClient
 
 from utils.config import (
         path_to_base_model, path_to_label_encoder,  path_to_test_data, evaluation_path,
-        model_name
+        model_name, path_to_drift_report
     )
 
 
@@ -29,6 +29,9 @@ def main() -> None:
     Returns:
         None
     """
+    
+    mlflow.set_experiment('Predictive Turbine Maintenance')
+    
     log.info('Loading test data')
     test_data = pd.read_csv(path_to_test_data)
     X_test = test_data.drop(columns=['target'])
@@ -175,15 +178,18 @@ def model_promotion(
     perf_comparison_plot = pd.DataFrame(
         scores, index=["f1 score"]).plot(kind='bar', figsize=(15, 10))
     perf_comparison_plot.figure.savefig("perf_comparison.png")
-    perf_comparison_plot.figure.savefig(Path(evaluation_output) / "perf_comparison.png")
+    perf_comparison_plot.figure.savefig(str(Path(evaluation_output) / "perf_comparison.png"))
 
     mlflow.log_metric("deploy flag", bool(deploy_flag))
-    mlflow.log_artifact("perf_comparison.png")
+    mlflow.log_artifact(Path(evaluation_output) / "perf_comparison.png")
+    
+    if Path(path_to_drift_report).is_file():
+        mlflow.log_artifact(path_to_drift_report)
+        
 
     return 
 
 
 if __name__ == '__main__':
-    mlflow.start_run()
-    main()
-    mlflow.end_run()
+    with mlflow.start_run():
+        main()
