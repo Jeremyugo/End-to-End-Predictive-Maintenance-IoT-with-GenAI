@@ -47,5 +47,5 @@ This project implements a scalable data and AI pipeline using Spark Delta Lake, 
 - [x] Create Dagster Pipeline with asset definitions
 - [x] Build AI-Agent
 - [x] Build Streamlit FrontEnd
+- [x] Implement Data Drift Check
 - [ ] Create MS Power BI dashboard
-- [ ] Implement Data Drift Check
