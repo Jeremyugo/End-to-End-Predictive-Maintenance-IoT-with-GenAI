@@ -3,11 +3,11 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import mlflow.sklearn
 from src.create_spark_session import create_spark_session, SparkConfig
 from utils.custom_sklearn_transformers import DateTimeImputer, TimeStampTransformer
 from utils.config import (
-        path_to_base_model, path_to_label_encoder, path_to_training_data, path_to_test_data
+        path_to_base_model, path_to_label_encoder, path_to_training_data, path_to_test_data,
+        path_to_drift_report
     )
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from typing import Any
@@ -20,6 +20,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
+from delta.tables import DeltaTable
+
 import mlflow
 import mlflow.sklearn
 from mlflow.models import infer_signature
@@ -27,6 +29,9 @@ import pandas as pd
 import numpy as np
 from loguru import logger as log
 import shutil
+
+from evidently import Report
+from evidently.presets import DataDriftPreset, DataSummaryPreset
 
 config = SparkConfig(storage='local', app_name='iot_data_ingestion')
 
@@ -44,6 +49,37 @@ def cleanup_temp_model_artifacts() -> None:
             shutil.rmtree(path)
             
     return 
+
+
+
+def perform_data_drift_detection(ref_data: pd.DataFrame, curr_data: pd.DataFrame) -> None:
+    """
+    Generate a data drift report comparing reference and current datasets.
+
+    This function uses Evidently's DataDriftPreset and DataSummaryPreset to detect and summarize
+    changes between the reference dataset (previous version) and the current dataset. The output 
+    is saved as an HTML report to the path defined by `path_to_drift_report`.
+
+    Args:
+        ref_data (pd.DataFrame): The reference dataset (e.g., previous version).
+        curr_data (pd.DataFrame): The current dataset to compare against the reference.
+
+    Returns:
+        None
+    """
+    report = Report(
+        metrics=[
+            DataDriftPreset(),
+            DataSummaryPreset()
+        ],
+        include_tests=True
+    )
+    
+    data_drift_result = report.run(reference_data=ref_data, current_data=curr_data)
+    data_drift_result.save_html(path_to_drift_report)
+    
+    return
+
 
 
 def build_model_training_pipeline(training_data: pd.DataFrame, model_params: dict) -> Pipeline:
@@ -97,34 +133,43 @@ def build_model_training_pipeline(training_data: pd.DataFrame, model_params: dic
 
 def load_training_data() -> pd.DataFrame:
     """
-    Load training data from the Delta format and convert it to a Pandas DataFrame.
+    Load training data from Delta format and perform optional data drift detection.
 
     Returns:
         pd.DataFrame: The training data.
     """
-    with create_spark_session(config) as spark:
-        sensor_training_data = spark.read.format('delta').load(path_to_training_data)
     
-    training_data = sensor_training_data.toPandas()
-    
-    columns = [
-        'hourly_timestamp',
-        'avg_energy',
-        'std_sensor_A',
-        'std_sensor_B',
-        'std_sensor_C',
-        'std_sensor_D',
-        'std_sensor_E',
-        'std_sensor_F',
-        'location',
-        'model',
-        'state',
-        'sensor_status'
+    train_features = [
+        'hourly_timestamp', 'avg_energy', 'std_sensor_A', 'std_sensor_B',
+        'std_sensor_C', 'std_sensor_D', 'std_sensor_E', 'std_sensor_F',
+        'location', 'model', 'state', 'sensor_status'
     ]
-
-    training_data = training_data.filter(columns)
-    training_data.dropna(inplace=True)
     
+    with create_spark_session(config) as spark:
+        delta_table = DeltaTable.forPath(spark, path_to_training_data)
+        latest_version = delta_table.history(1).select('version').collect()[0][0]
+        previous_version = max(latest_version - 1, 0)
+        
+        check_for_data_drift = previous_version < latest_version
+        
+        sensor_training_data_curr = spark.read.format('delta').load(path_to_training_data)
+        training_data = sensor_training_data_curr.select(*train_features).toPandas()
+        training_data.dropna(inplace=True)
+        
+        if check_for_data_drift:
+            log.info('performing data drift check...')
+            sensor_training_data_prev = (
+                spark.read.format('delta')
+                .option('versionAsOf', previous_version)
+                .load(path_to_training_data)
+            )
+            
+            ref_data = sensor_training_data_prev.select(*train_features).toPandas()
+            ref_data.dropna(inplace=True)
+            
+            perform_data_drift_detection(ref_data=ref_data, curr_data=training_data)
+            
+            
     return training_data
 
 
@@ -228,6 +273,8 @@ def main() -> None:
         None
     """
     
+    mlflow.set_experiment('Predictive Turbine Maintenance')
+    
     cleanup_temp_model_artifacts()
     log.info('loading training data')
     training_data = load_training_data()
@@ -279,6 +326,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    mlflow.start_run()
-    main()
-    mlflow.end_run()
+    with mlflow.start_run():
+        main()

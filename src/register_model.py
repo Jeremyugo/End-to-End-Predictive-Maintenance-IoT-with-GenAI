@@ -40,6 +40,8 @@ def main() -> None:
         None
     """
     
+    mlflow.set_experiment('Predictive Turbine Maintenance')
+    
     with open((Path(evaluation_path) / 'deploy_flag.txt'), 'rb') as infile:
         deploy_flag = int(infile.read())
         
@@ -84,6 +86,5 @@ def main() -> None:
 
     
 if __name__ == '__main__':
-    mlflow.start_run()
-    main()
-    mlflow.end_run()
+    with mlflow.start_run():
+        main()

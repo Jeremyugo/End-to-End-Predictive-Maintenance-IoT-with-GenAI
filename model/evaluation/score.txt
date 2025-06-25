@@ -22,8 +22,8 @@ Pipeline(steps=[('preprocessor',
                                                   ['location', 'model',
                                                    'state'])])),
                 ('classifier',
-                 RandomForestClassifier(max_depth=90, min_samples_split=4,
-                                        n_estimators=1000, oob_score=True,
-                                        random_state=42))])f1 score: 0.98 
+                 RandomForestClassifier(max_depth=70, max_features='log2',
+                                        n_estimators=570, oob_score=True,
+                                        random_state=42))])f1 score: 0.99 
 Precision score: 0.98 
-Recall score: 0.98 
+Recall score: 0.99 
