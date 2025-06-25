@@ -1,4 +1,4 @@
-from dagster import asset, AssetExecutionContext, Definitions, ScheduleDefinition
+from dagster import asset, AssetExecutionContext, Definitions, ScheduleDefinition, define_asset_job
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -42,13 +42,10 @@ def register_model(context: AssetExecutionContext) -> None:
         log.exception(e)
         raise
 
-defs = Definitions(assets=[
-    train_ml_model,
-    evaluate_model,
-    register_model
-])
 
-hourly_schedule = ScheduleDefinition(
-    job=defs.get_job(),
+training_job = define_asset_job('training_job')
+
+training_schedule = ScheduleDefinition(
+    job=training_job,
     cron_schedule="0 */3 * * *",  # runs every 3 hours
 )
