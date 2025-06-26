@@ -14,39 +14,48 @@ st.set_page_config(
 def run_app():
     st.title("Predictive Maintenance AI Agent 🤖")
     
-    if st.button("New Chat"):
-        st.session_state.pop('messages', None)
-        st.session_state.pop('memory', None)
-        st.rerun()
+    col1, _ = st.columns([0.5, 1])
+    col1.text_input(label='Enter your OpenAI API Key', key='openAI_api_key', type='password')
+    if st.session_state.get('openAI_api_key', None):
     
-    agent_memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True
-    )
-    
-    st.session_state.setdefault('memory', agent_memory)
-    st.session_state.setdefault('messages', [])
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-    
-    if user_query := st.chat_input("Ask a question:"):
-        with st.chat_message("user"):
-            st.markdown(user_query)
-        st.session_state.messages.append({"role": "user", "content": user_query})
-
-        with st.spinner("Thinking..."):
-            response = interact_with_agent(
-                query=user_query,
-                memory=st.session_state['memory']
-                )
-
-        with st.chat_message("assistant"):
-            st.markdown(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        if st.button("New Chat"):
+            st.session_state.pop('messages', None)
+            st.session_state.pop('memory', None)
+            st.session_state.pop('openAI_api_key', None)
+            st.rerun()
         
+        agent_memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
+        )
+        
+        st.session_state.setdefault('memory', agent_memory)
+        st.session_state.setdefault('messages', [])
 
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        
+        if user_query := st.chat_input("Ask a question:"):
+            with st.chat_message("user"):
+                st.markdown(user_query)
+            st.session_state.messages.append({"role": "user", "content": user_query})
+
+            with st.spinner("Thinking..."):
+                try:
+                    response = interact_with_agent(
+                        query=user_query,
+                        memory=st.session_state['memory'],
+                        openAI_api_key=st.session_state['openAI_api_key']
+                        )
+                    with st.chat_message("assistant"):
+                        st.markdown(response)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                
+                except Exception as e:
+                    st.write(str(e))
+
+            
     return 
 
 

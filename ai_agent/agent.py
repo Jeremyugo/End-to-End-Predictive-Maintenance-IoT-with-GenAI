@@ -15,10 +15,8 @@ from ai_agent.agent_instructions import system_template
 
 openAI_api_key = os.environ.get('OPENAI_API_KEY')
 
-llm = ChatOpenAI(model='gpt-3.5-turbo', api_key=openAI_api_key)
 
-
-def interact_with_agent(query: str, memory: ConversationBufferMemory) -> str:
+def interact_with_agent(query: str, memory: ConversationBufferMemory, openAI_api_key: str) -> str:
     """
     Interact with the agent to process a query and return the response.
 
@@ -28,6 +26,9 @@ def interact_with_agent(query: str, memory: ConversationBufferMemory) -> str:
     Returns:
         str: The agent's response to the query.
     """
+    
+    llm = ChatOpenAI(model='gpt-3.5-turbo', api_key=openAI_api_key)
+    
     prompt = ChatPromptTemplate.from_messages(
         [
             ('system', system_template),
