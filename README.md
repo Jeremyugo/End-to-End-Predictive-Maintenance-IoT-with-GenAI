@@ -104,5 +104,3 @@ This project implements a scalable data and AI pipeline using cutting-edge techn
 
 ### In Progress
 - 🔄 Power BI dashboard development
-- 🔄 Additional model optimizations
-- 🔄 Enhanced AI agent capabilities
