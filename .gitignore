@@ -50,17 +50,39 @@ htmlcov/
 node_modules/
 *.lock
 
-# Ignore config files
+# Ignore everything in data
+data/**
+
+# Allow folder structure down to data subfolders
+!data/
+!data/bronze/
+!data/bronze/**/
+!data/silver/
+!data/silver/**/
+!data/gold/
+!data/gold/**/
+
+# Allow parquet files
+!data/**/*.parquet
+
+# Allow delta logs (except _commits)
+!data/**/_delta_log/
+!data/**/_delta_log/*.json
+!data/**/_delta_log/*.checkpoint.parquet
+
+# Still ignore _commits
+data/**/_delta_log/_commits/
+
+# Ignore private files
 config.py
+utils/**
 
 # Ignore directories and files
-utils/
+!utils/custom_sklearn_transformers.py
+!utils/helper_functions.py
 checkpoints/
 artifacts/
 00.%20project_setup/
-data/bronze/
-data/silver/
-data/gold/
 notebooks/
 !model/evaluation
 model/data
