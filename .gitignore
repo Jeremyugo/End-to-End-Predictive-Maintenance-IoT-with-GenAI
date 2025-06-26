@@ -50,17 +50,19 @@ htmlcov/
 node_modules/
 *.lock
 
-# Ignore config files
+# Ignore everything in data
+data/**
+
+# Ignore private files
 config.py
+utils/**
 
 # Ignore directories and files
-utils/
+!utils/custom_sklearn_transformers.py
+!utils/helper_functions.py
 checkpoints/
 artifacts/
 00.%20project_setup/
-data/bronze/
-data/silver/
-data/gold/
 notebooks/
 !model/evaluation
 model/data
