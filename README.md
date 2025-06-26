@@ -2,6 +2,8 @@
 
 A comprehensive end-to-end solution for real-time wind turbine monitoring, fault detection, and AI-assisted maintenance operations. This project combines modern data engineering practices, machine learning, and generative AI to create a robust predictive maintenance system.
 
+![Gen-AI](./images/GenAI.png)
+
 ## 🚀 Project Overview
 
 This project implements a scalable data and AI pipeline using cutting-edge technologies to monitor wind turbines, detect potential faults, and provide intelligent maintenance support. The system processes real-time sensor data, predicts potential failures, and offers AI-powered maintenance assistance.
@@ -10,7 +12,7 @@ This project implements a scalable data and AI pipeline using cutting-edge techn
 
 - **Real-time Data Processing**: Streaming sensor data ingestion using Spark Structured Streaming
 - **Scalable Storage**: Delta Lake integration for reliable data storage and versioning
-- **Automated ML Pipeline**: Continuous model training, hyperparameter tuning and evaluation with Sklearn, HyperOpt, and MLflow
+- **Automated ML Pipeline**: Continuous model training, hyperparameter tuning, data drift detection, and evaluation with Sklearn, HyperOpt, Evidently and MLflow
 - **Intelligent Maintenance**: GenAI-powered maintenance assistant using LangChain and OpenAI
 - **Modern Frontend**: Interactive Streamlit-based user interface
 - **Robust Orchestration**: Automated workflows with Dagster
@@ -35,7 +37,7 @@ This project implements a scalable data and AI pipeline using cutting-edge techn
   - RandomForest Classifier for fault prediction
   - Hyperparameter optimization using hyperopt
   - MLflow experiment tracking and model versioning
-  - Automated data drift detection using Evidently
+  - Automated data drift detection using Evidently AI
 
 ### 3. GenAI Assistant
 - **Interactive Agent**
