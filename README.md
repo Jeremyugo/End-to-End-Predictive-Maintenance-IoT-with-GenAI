@@ -4,103 +4,40 @@ A comprehensive end-to-end solution for real-time wind turbine monitoring, fault
 
 ![Gen-AI](./images/GenAI.png)
 
-## 🚀 Project Overview
+## 🚀 Overview
 
-This project implements a scalable data and AI pipeline using cutting-edge technologies to monitor wind turbines, detect potential faults, and provide intelligent maintenance support. The system processes real-time sensor data, predicts potential failures, and offers AI-powered maintenance assistance.
+This project processes real-time turbine sensor data, predicts equipment faults, and provides AI-powered maintenance support through a user-friendly interface.
 
-### Key Features
+### 🔧 Key Components
 
-- **Real-time Data Processing**: Streaming sensor data ingestion using Spark Structured Streaming
-- **Scalable Storage**: Delta Lake integration for reliable data storage and versioning
-- **Automated ML Pipeline**: Continuous model training, hyperparameter tuning, data drift detection, and evaluation with Sklearn, HyperOpt, Evidently and MLflow
-- **Intelligent Maintenance**: GenAI-powered maintenance assistant using LangChain and OpenAI
-- **Modern Frontend**: Interactive Streamlit-based user interface
-- **Robust Orchestration**: Automated workflows with Dagster
+- **Real-Time Ingestion**: Spark Structured Streaming + Delta Lake  
+- **ML Pipeline**: Scikit-learn, Hyperopt, MLflow, Evidently  
+- **AI Assistant**: LangChain + OpenAI for maintenance support  
+- **Frontend**: Streamlit UI with real-time chat  
+- **Orchestration**: Dagster for automated workflows  
 
-## 🏗️ Architecture
+## 🧱 Architecture Summary
 
-### 1. Data Layer
-- **Data Ingestion**
-  - Spark Structured Streaming for real-time data processing
-  - Support for multiple data formats (JSON, Parquet)
-  - Automated schema inference and validation
-  - Delta Lake integration with checkpoint management
-  - Data quality checks and enforcement
+1. **Data Layer**: Ingest real-time sensor data → store in Delta Lake  
+2. **ML Pipeline**: Train, evaluate, and monitor models  
+3. **GenAI Assistant**: Answer maintenance queries via natural language  
+4. **UI**: Streamlit app for user interaction  
+5. **Scheduling**: Dagster pipelines for automation  
 
-### 2. Machine Learning Pipeline
-- **Data Preparation**
-  - Automated feature engineering
-  - Custom sklearn transformers for datetime handling
-  - Robust data preprocessing pipeline
+## 💻 Tech Stack
 
-- **Model Training**
-  - RandomForest Classifier for fault prediction
-  - Hyperparameter optimization using hyperopt
-  - MLflow experiment tracking and model versioning
-  - Automated data drift detection using Evidently AI
+- **Data**: Apache Spark, Delta Lake  
+- **ML**: scikit-learn, MLflow, Hyperopt  
+- **AI**: LangChain, OpenAI GPT  
+- **UI**: Streamlit  
+- **Orchestration**: Dagster  
+- **Monitoring**: Evidently  
+- **Planned**: Power BI dashboard  
 
-### 3. GenAI Assistant
-- **Interactive Agent**
-  - Built with LangChain and OpenAI GPT-3.5
-  - Maintenance prediction capabilities
-  - Turbine specifications retrieval
-  - Contextual conversation memory
-  - Natural language interface for technicians
+## 📈 Data Flow
 
-### 4. Workflow Orchestration
-- **Dagster Pipeline**
-  - Separate data ingestion and model training pipelines
-  - Continuous data ingestion using sensors
-  - Scheduled model training (every 3 hours)
-  - Automated asset dependencies management
-  - Comprehensive logging and monitoring
-
-### 5. User Interface
-- **Streamlit Frontend**
-  - Interactive chat interface with AI agent
-  - Real-time query processing
-  - Persistent conversation history
-  - User-friendly session management
-  - Responsive design
-
-## 🛠️ Technology Stack
-
-- **Data Processing**: Apache Spark, Delta Lake
-- **Machine Learning**: scikit-learn, MLflow
-- **AI/LLM**: LangChain, OpenAI GPT-3.5
-- **Orchestration**: Dagster
-- **Frontend**: Streamlit
-- **Monitoring**: Evidently AI
-- **Visualization**: Power BI (planned)
-
-## 📊 Data Flow
-
-1. Real-time sensor data streams into the system
-2. Data is processed and stored in Delta Lake tables
-3. ML pipeline continuously trains and evaluates models
-4. GenAI agent processes maintenance queries
-5. Results are presented through the Streamlit interface
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.8+
-- Apache Spark
-- OpenAI API key
-- MLflow server
-- Dagster instance
-
-
-## 🔍 Project Status
-
-### Completed
-- ✅ Data Ingestion and Transformation pipeline
-- ✅ Machine Learning model development
-- ✅ Model evaluation and registration system
-- ✅ Dagster pipeline implementation
-- ✅ AI Agent development
-- ✅ Streamlit frontend
-- ✅ Data drift monitoring
-
-### In Progress
-- 🔄 Power BI dashboard development
+1. Sensor data ingested in real-time  
+2. Stored and processed in Delta Lake  
+3. ML models trained and evaluated  
+4. GenAI assistant handles maintenance queries  
+5. Results displayed via Streamlit UI  
